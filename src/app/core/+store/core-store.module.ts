@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
-import { environment } from '../../../environments/environment.prod';
+import { environment } from './../../../environments/environment';
 
 
 @NgModule({
