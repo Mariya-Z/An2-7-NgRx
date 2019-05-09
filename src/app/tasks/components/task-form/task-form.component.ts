@@ -1,50 +1,61 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 
+// @ngrx
+import { Store, select } from '@ngrx/store';
+import { AppState, TasksState } from './../../../core/+store';
+import * as TasksActions from './../../../core/+store/tasks/tasks.actions';
+
 // rxjs
-import { switchMap, tap } from 'rxjs/operators';
+import { Observable, Subscription } from 'rxjs';
 
 import { TaskModel } from './../../models/task.model';
-import { TaskPromiseService } from './../../services';
+import { AutoUnsubscribe } from './../../../core';
 
 @Component({
   templateUrl: './task-form.component.html',
-  styleUrls: ['./task-form.component.css']
+  styleUrls: ['./task-form.component.css'],
 })
+@AutoUnsubscribe()
 export class TaskFormComponent implements OnInit {
   task: TaskModel;
+  tasksState$: Observable<TasksState>;
+
+  private sub: Subscription;
 
   constructor(
-    private taskPromiseService: TaskPromiseService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private store: Store<AppState>,
   ) {}
 
   ngOnInit(): void {
-    this.task = new TaskModel();
+    this.tasksState$ = this.store.pipe(select('tasks'));
+    this.sub = this.tasksState$.subscribe(tasksState => {
+      if (tasksState.selectedTask) {
+        this.task = tasksState.selectedTask;
+      } else {
+        this.task = new TaskModel();
+      }
+    });
 
-    this.route.paramMap
-      .pipe(
-        switchMap((params: Params) => {
-          return params.get('taskID')
-            ? this.taskPromiseService.getTask(+params.get('taskID'))
-            : Promise.resolve(null);
-        })
-      )
-      .subscribe(
-        // when Promise.resolve(null) => task = null => {...null} => {}
-        task => (this.task = { ...task }),
-        err => console.log(err)
-      );
+
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('taskID');
+      if (id) {
+        this.store.dispatch(new TasksActions.GetTask(+id));
+      }
+    });
   }
 
   onSaveTask() {
     const task = { ...this.task };
 
-    const method = task.id ? 'updateTask' : 'createTask';
-    this.taskPromiseService[method](task)
-      .then(() => this.onGoBack())
-      .catch(err => console.log(err));
+    if (task.id) {
+      this.store.dispatch(new TasksActions.UpdateTask(task));
+    } else {
+      this.store.dispatch(new TasksActions.CreateTask(task));
+    }
   }
 
   onGoBack(): void {

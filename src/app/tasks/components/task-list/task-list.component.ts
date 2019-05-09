@@ -10,7 +10,6 @@ import { AppState } from '../../../core/+store';
 import * as TasksActions from './../../../core/+store/tasks/tasks.actions';
 
 import { TaskModel } from './../../models/task.model';
-import { TaskPromiseService } from './../../services';
 
 
 @Component({
@@ -18,18 +17,17 @@ import { TaskPromiseService } from './../../services';
   styleUrls: ['./task-list.component.css']
 })
 export class TaskListComponent implements OnInit {
-  tasks: Promise<Array<TaskModel>>;
   tasksState$: Observable<TaskModel>;
 
   constructor(
     private router: Router,
     private store: Store<AppState>,
-    private taskPromiseService: TaskPromiseService
   ) {}
 
   ngOnInit() {
     console.log('We have a store! ', this.store);
     this.tasksState$ = this.store.pipe(select('tasks'));
+    this.store.dispatch(new TasksActions.GetTasks());
     // this.tasks = this.taskPromiseService.getTasks();
   }
 
@@ -48,9 +46,6 @@ export class TaskListComponent implements OnInit {
   }
 
   onDeleteTask(task: TaskModel) {
-    this.taskPromiseService
-      .deleteTask(task)
-      .then(() => (this.tasks = this.taskPromiseService.getTasks()))
-      .catch(err => console.log(err));
+    this.store.dispatch(new TasksActions.DeleteTask(task));
   }
 }
