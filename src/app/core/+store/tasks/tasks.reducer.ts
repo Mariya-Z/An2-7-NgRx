@@ -148,23 +148,6 @@ export function tasksReducer(
       };
     }
 
-    case TasksActionTypes.DONE_TASK: {
-      console.log('DONE_TASK action being handled!');
-
-      const id = (<TaskModel>action.payload).id;
-      const data = state.data.map(task => {
-        if (task.id === id) {
-          return { ...action.payload, done: true };
-        }
-        return task;
-      });
-
-      return {
-        ...state,
-        data,
-      };
-    }
-
     default: {
       console.log('UNKNOWN_TASK action being handled!');
       return state;

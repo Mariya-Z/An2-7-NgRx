@@ -6,29 +6,27 @@ import { Observable } from 'rxjs';
 
 // @ngrx
 import { Store, select } from '@ngrx/store';
-import { AppState } from '../../../core/+store';
+import { AppState, getTasksData, getTasksError } from '../../../core/+store';
 import * as TasksActions from './../../../core/+store/tasks/tasks.actions';
 
 import { TaskModel } from './../../models/task.model';
 
-
 @Component({
   templateUrl: './task-list.component.html',
-  styleUrls: ['./task-list.component.css']
+  styleUrls: ['./task-list.component.css'],
 })
 export class TaskListComponent implements OnInit {
-  tasksState$: Observable<TaskModel>;
-
-  constructor(
-    private router: Router,
-    private store: Store<AppState>,
-  ) {}
+  tasks$: Observable<ReadonlyArray<TaskModel>>;
+  tasksError$: Observable<Error | string>;
+  
+  constructor(private router: Router, private store: Store<AppState>) {}
 
   ngOnInit() {
     console.log('We have a store! ', this.store);
-    this.tasksState$ = this.store.pipe(select('tasks'));
+    this.tasks$ = this.store.pipe(select(getTasksData));
+    this.tasksError$ = this.store.pipe(select(getTasksError));
+
     this.store.dispatch(new TasksActions.GetTasks());
-    // this.tasks = this.taskPromiseService.getTasks();
   }
 
   onCreateTask() {
@@ -37,7 +35,8 @@ export class TaskListComponent implements OnInit {
   }
 
   onCompleteTask(task: TaskModel): void {
-    this.store.dispatch(new TasksActions.DoneTask(task));
+    const doneTask = { ...task, done: true };
+    this.store.dispatch(new TasksActions.UpdateTask(doneTask));
   }
 
   onEditTask(task: TaskModel): void {
