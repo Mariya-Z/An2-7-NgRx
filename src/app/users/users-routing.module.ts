@@ -3,7 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { UsersComponent } from './users.component';
 import { UserListComponent, UserFormComponent } from './components';
-import { UserResolveGuard } from './guards';
+import { UsersStatePreloadingGuard } from './guards';
 
 import { CanDeactivateGuard } from './../core';
 
@@ -14,32 +14,30 @@ const routes: Routes = [
     children: [
       {
         path: 'add',
-        component: UserFormComponent
+        component: UserFormComponent,
       },
       {
         path: 'edit/:userID',
         component: UserFormComponent,
         canDeactivate: [CanDeactivateGuard],
-        resolve: {
-          user: UserResolveGuard
-        }
       },
       {
         path: '',
-        component: UserListComponent
-      }
-    ]
-  }
+        component: UserListComponent,
+        canActivate: [UsersStatePreloadingGuard],
+      },
+    ],
+  },
 ];
 
 export let usersRouterComponents = [
   UsersComponent,
   UserListComponent,
-  UserFormComponent
+  UserFormComponent,
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
 export class UsersRoutingModule {}
