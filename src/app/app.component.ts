@@ -2,6 +2,11 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { Router, NavigationEnd } from '@angular/router';
 
+// @Ngrx
+import { Store } from '@ngrx/store';
+import { AppState } from './core/+store';
+import * as RouterActions from './core/+store/router/router.actions';
+
 // rxjs
 import { Subscription } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
@@ -11,7 +16,7 @@ import { MessagesService, SpinnerService } from './core';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit, OnDestroy {
   private sub: Subscription;
@@ -21,7 +26,8 @@ export class AppComponent implements OnInit, OnDestroy {
     private titleService: Title,
     private metaService: Meta,
     private router: Router,
-    public spinnerService: SpinnerService
+    public spinnerService: SpinnerService,
+    private store: Store<AppState>,
   ) {}
 
   ngOnInit() {
@@ -33,7 +39,11 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   onDisplayMessages(): void {
-    this.router.navigate([{ outlets: { popup: ['messages'] } }]);
+    this.store.dispatch(
+      new RouterActions.Go({
+        path: [{ outlets: { messages: ['messages'] } }],
+      }),
+    );
     this.messagesService.isDisplayed = true;
   }
 
@@ -75,10 +85,9 @@ export class AppComponent implements OnInit, OnDestroy {
           return route;
         }),
         filter(route => route.outlet === 'primary'),
-        switchMap(route => route.data)
+        switchMap(route => route.data),
       )
-      .subscribe(
-      data => {
+      .subscribe(data => {
         this.titleService.setTitle(data['title']);
         this.metaService.addTags(data['meta']);
       });

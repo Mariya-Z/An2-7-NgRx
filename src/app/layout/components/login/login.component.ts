@@ -1,5 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router, NavigationExtras } from '@angular/router';
+import { NavigationExtras } from '@angular/router';
+
+// @Ngrx
+import { Store } from '@ngrx/store';
+import { AppState } from './../../../core/+store';
+import * as RouterActions from './../../../core/+store/router/router.actions';
 
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -8,14 +13,17 @@ import { AuthService } from './../../../core';
 
 @Component({
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.css'],
 })
 export class LoginComponent implements OnInit, OnDestroy {
   message: string;
 
   private unsubscribe: Subject<void> = new Subject();
 
-  constructor(public authService: AuthService, private router: Router) {}
+  constructor(
+    public authService: AuthService,
+    private store: Store<AppState>,
+  ) {}
 
   ngOnInit() {
     this.setMessage();
@@ -48,15 +56,20 @@ export class LoginComponent implements OnInit, OnDestroy {
 
             const navigationExtras: NavigationExtras = {
               queryParamsHandling: 'preserve',
-              preserveFragment: true
+              preserveFragment: true,
             };
 
             // Redirect the user
-            this.router.navigate([redirect], navigationExtras);
+            this.store.dispatch(
+              new RouterActions.Go({
+                path: [redirect],
+                extras: navigationExtras,
+              }),
+            );
           }
         },
         err => console.log(err),
-        () => console.log('[takeUntil] complete')
+        () => console.log('[takeUntil] complete'),
       );
   }
 

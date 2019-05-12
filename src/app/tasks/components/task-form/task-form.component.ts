@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Params, Router } from '@angular/router';
 
 // @ngrx
 import { Store, select } from '@ngrx/store';
-import { AppState, getSelectedTask } from './../../../core/+store';
+import { AppState, getSelectedTaskByUrl } from './../../../core/+store';
 import * as TasksActions from './../../../core/+store/tasks/tasks.actions';
+import * as RouterActions from './../../../core/+store/router/router.actions';
 
 // rxjs
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 import { TaskModel } from './../../models/task.model';
 import { AutoUnsubscribe } from './../../../core';
@@ -22,27 +22,12 @@ export class TaskFormComponent implements OnInit {
 
   private sub: Subscription;
 
-  constructor(
-    private router: Router,
-    private route: ActivatedRoute,
-    private store: Store<AppState>,
-  ) {}
+  constructor(private store: Store<AppState>) {}
 
   ngOnInit(): void {
-    this.sub = this.store.pipe(select(getSelectedTask)).subscribe(task => {
-      if (task) {
-        this.task = task;
-      } else {
-        this.task = new TaskModel();
-      }
-    });
-
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('taskID');
-      if (id) {
-        this.store.dispatch(new TasksActions.GetTask(+id));
-      }
-    });
+    this.sub = this.store
+      .pipe(select(getSelectedTaskByUrl))
+      .subscribe(task => (this.task = task));
   }
 
   onSaveTask() {
@@ -56,6 +41,10 @@ export class TaskFormComponent implements OnInit {
   }
 
   onGoBack(): void {
-    this.router.navigate(['/home']);
+    this.store.dispatch(
+      new RouterActions.Go({
+        path: ['/home'],
+      }),
+    );
   }
 }

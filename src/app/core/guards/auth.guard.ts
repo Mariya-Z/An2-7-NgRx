@@ -6,23 +6,30 @@ import {
   CanLoad,
   NavigationExtras,
   Route,
-  Router,
-  RouterStateSnapshot
+  RouterStateSnapshot,
 } from '@angular/router';
+
+// @Ngrx
+import { Store } from '@ngrx/store';
+import { AppState } from './../+store';
+import * as RouterActions from './../+store/router/router.actions';
 
 import { Observable } from 'rxjs';
 import { CoreModule } from '../core.module';
 import { AuthService } from '../services/auth.service';
 
 @Injectable({
-  providedIn: CoreModule
+  providedIn: CoreModule,
 })
 export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private store: Store<AppState>,
+  ) {}
 
   canActivate(
     next: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
+    state: RouterStateSnapshot,
   ): Observable<boolean> | Promise<boolean> | boolean {
     console.log('CanActivate Guard is called');
     const { url } = state;
@@ -31,7 +38,7 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
 
   canActivateChild(
     next: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
+    state: RouterStateSnapshot,
   ): Observable<boolean> | Promise<boolean> | boolean {
     console.log('CanActivateChild Guard is called');
     const { url } = state;
@@ -60,11 +67,16 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
     // that contains our global query params and fragment
     const navigationExtras: NavigationExtras = {
       queryParams: { sessionId },
-      fragment: 'anchor'
+      fragment: 'anchor',
     };
 
     // Navigate to the login page with extras
-    this.router.navigate(['/login'], navigationExtras);
+    this.store.dispatch(
+      new RouterActions.Go({
+        path: ['/login'],
+        extras: navigationExtras,
+      }),
+    );
 
     return false;
   }

@@ -1,24 +1,33 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { MessagesService } from '../../../core';
+
+// @Ngrx
+import { Store } from '@ngrx/store';
+import { AppState } from '../../../core/+store';
+import * as RouterActions from './../../../core/+store/router/router.actions';
 
 @Component({
   selector: 'app-messages',
   templateUrl: './messages.component.html',
-  styleUrls: ['./messages.component.css']
+  styleUrls: ['./messages.component.css'],
 })
 export class MessagesComponent implements OnInit {
   message = '';
 
   constructor(
     public messagesService: MessagesService,
-    private router: Router
+    private store: Store<AppState>,
   ) {}
 
   ngOnInit() {}
 
   onClose() {
-    this.router.navigate([{ outlets: { messages: null } }]);
+    this.store.dispatch(
+      new RouterActions.Go({
+        path: [{ outlets: { messages: null } }],
+      }),
+    );
+
     this.messagesService.isDisplayed = false;
   }
 
